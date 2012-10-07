@@ -1,27 +1,36 @@
 // befunge.h
 // (C) Bogdan Filipchuk 2012
 
-#ifndef BEFUNGE
-#define BEFUNGE
+#ifndef BEFUNGE_h
+#define BEFUNGE_h
 // Stack implementation
-#define stack.h
+//#include stack.c
 
-enum vmode{ command; insert; debug; };
-
-typedef struct {
-    
-} cell;
+enum vmode{ QUIT, INSERT, RUN };
 
 /* Befunge operator list
+ *  Specific CHAR values which mean something to the interpreter
  */
-enum direction {
-    north = '^';
-    east = '<';
-    south = 'v';
-    west = '>';
-    in = 'x';
-    out = 'o';
-    exit = '@';
-}
+enum operators {
+    // Directional Operators
+    //  Alter the flow of the program
+    NORTH = '^',
+    EAST = '<',
+    SOUTH = 'v',
+    WEST = '>',
+    IN = 'x',  // reserved for 3D fields
+    OUT = 'o', //
+    EXIT = '@'
+};
 
+// Representation of Direction
+enum directions {
+    D_NORTH = 0,
+    D_EAST  = 1,
+    D_SOUTH = 2,
+    D_WEST  = 3,
+};
+// Reversal of Direction
+#define REVERSE_(dir) dir=(dir+2)%4
 #endif
+
