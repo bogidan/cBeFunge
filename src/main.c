@@ -129,78 +129,113 @@ int main( int argc, char **argv )
         mvwchgat( funge, y, x, 1, A_BLINK, 2, NULL);
         wrefresh(funge);
         
-        /* Process Char Command
-         */
-        int c = wgetch(funge); // Get Input
-        mvwchgat( funge, y, x, 1, A_NORMAL, 0, NULL);
-        wrefresh(funge); // update screen
-        // Preprocess for complex functions
-        if ( del_command ) {
-            REVERSE_(direction);
-            del_command = FALSE;
+        // Act Based on Modes
+        switch( mode ) {
+            case RUN :
+                funge->delaytenths = 50;
+                int c = wgetch(funge); // Get Input
+                // Undo the Highlight
+                mvwchgat( funge, y, x, 1, A_NORMAL, 0, NULL);
+                wrefresh(funge); // update screen
+                switch(c) {
+                    case 'e' : // Edit
+                        mode = INSERT;
+                        funge->delaytenths = 0;
+                        break;
+                    case 'r' : // Run again if stoped
+                    case 's' : // Stop
+                    case 'p' : // Pause
+                }
+            case PAUSE :
+            case DEBUG :
+                break;
+            case INSERT :
+                /* Handle INSERT command
+                 * -Wait for input
+                 * -Undo highlight
+                 * -Process command
+                 */
+                int c = wgetch(funge); // Get Input
+                // Undo the Highlight
+                mvwchgat( funge, y, x, 1, A_NORMAL, 0, NULL);
+                wrefresh(funge); // update screen
+                // Preprocess for complex functions
+                if ( del_command ) {
+                    REVERSE_(direction);
+                    del_command = FALSE;
+                }
+                // Process the command
+                switch( c ) {
+                    /* System Options
+                     * -Close
+                     * -Switch Modes
+                     */
+                    case KEY_CLOSE : // Handle Quit
+                    case KEY_EXIT :
+                    case KEY_SUSPEND : // Handle Suspend
+                    case KEY_F(4) :
+                    case ((int)'c') | BUTTON_CONTROL) :
+                    case 27 : // ESC key
+                        mode = QUIT; break;
+                    case ((int)'r' | BUTTON_CONTROL) : // Switch to Run mode
+                        mode = RUN; break;
+                    /* Directional Commands
+                     * -Directionals
+                     * - 'v' '^' '<' '>' commands
+                     * - <S-[dir]> commands
+                     */
+                    case KEY_SUP : // Up Direction
+                        c = '^';
+                    case '^' :
+                        mvwaddch(funge,y,x,c);
+                    case KEY_UP :
+                        direction = D_NORTH; break;
+                    case KEY_SDOWN : // Down Direction
+                        c = 'v';
+                    case 'v' :
+                        mvwaddch(funge,y,x,c);
+                    case KEY_DOWN :
+                        direction = D_SOUTH; break;
+                    case KEY_SRIGHT :
+                        c = '>';
+                    case '>' :
+                        mvwaddch(funge,y,x,c);
+                    case KEY_RIGHT :
+                        direction = D_EAST; break;
+                    case KEY_SLEFT :
+                        c = '<';
+                    case '<' :
+                        mvwaddch(funge,y,x,c);
+                    case KEY_LEFT :
+                        direction = D_WEST; break;
+                    /* Delete Charachters
+                     * -On backspace, delete
+                     */
+                    case KEY_DC :
+                    case '\b' : // Backspace Key
+                    case KEY_BACKSPACE :
+                        REVERSE_(direction);
+                        del_command = TRUE;
+                        mvwaddch(funge,y,x,erasechar());
+                        break;
+                    /* Ignore some commands
+                     */
+                    case '\n' :
+                    case '\r' :
+                    case '\t' :
+                    case '\v' :
+                        break; // Ignore these things
+                    /* Handle all other Keys
+                     */
+                    default: 
+                        mvwaddch(funge,y,x,c);
+                        break;
+                }
+                break;
+            default :
+                break;
         }
-        // Process the command
-        switch( c ) {
-            /* System Options
-             * -Close
-             * -Switch Modes
-             */
-            case KEY_CLOSE : // Handle Quit
-            case KEY_EXIT :
-            case KEY_SUSPEND : // Handle Suspend
-            case KEY_F(4) :
-            case 27 : // ESC key
-                mode = QUIT; break;
-            /* Directional Commands
-             * -Directionals
-             * - 'v' '^' '<' '>' commands
-             * - <S-[dir]> commands
-             */
-            case KEY_SUP : // Up Direction
-                c = '^';
-            case '^' :
-                mvwaddch(funge,y,x,c);
-            case KEY_UP :
-                direction = D_NORTH; break;
-            case KEY_SDOWN : // Down Direction
-                c = 'v';
-            case 'v' :
-                mvwaddch(funge,y,x,c);
-            case KEY_DOWN :
-                direction = D_SOUTH; break;
-            case KEY_SRIGHT :
-                c = '>';
-            case '>' :
-                mvwaddch(funge,y,x,c);
-            case KEY_RIGHT :
-                direction = D_EAST; break;
-            case KEY_SLEFT :
-                c = '<';
-            case '<' :
-                mvwaddch(funge,y,x,c);
-            case KEY_LEFT :
-                direction = D_WEST; break;
-            /* Delete Charachters
-             */
-            case KEY_DC :
-            case '\b' : // Backspace Key
-            case KEY_BACKSPACE :
-                REVERSE_(direction);
-                del_command = TRUE;
-                mvwaddch(funge,y,x,erasechar());
-                break;
-            /* Ignore some commands
-             */
-            case '\n' :
-            case '\r' :
-            case '\t' :
-            case '\v' :
-                break; // Ignore these things
-            /* Handle all other Keys
-             */
-            default: 
-                mvwaddch(funge,y,x,c);
-                break;
+            case INSERT :
         }
         // Move cursor based on the direction
         switch( direction ) {

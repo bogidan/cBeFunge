@@ -6,7 +6,7 @@
 // Stack implementation
 //#include stack.c
 
-enum vmode{ QUIT, INSERT, RUN };
+enum vmode{ QUIT, INSERT, RUN, PAUSE, DEBUG };
 
 /* Befunge operator list
  *  Specific CHAR values which mean something to the interpreter
@@ -27,7 +27,7 @@ enum operators {
 enum directions {
     D_NORTH = 0,
     D_EAST  = 1,
-    D_SOUTH = 2,
+    D_SORTH = 2,
     D_WEST  = 3,
 };
 // Reversal of Direction
